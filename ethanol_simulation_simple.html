@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethanol Fuel Investigation Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .control-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .control-section h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 8px;
+        }
+        
+        .variable-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .iv-tag {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .dv-tag {
+            background: #339af0;
+            color: white;
+        }
+        
+        .cv-tag {
+            background: #ffd43b;
+            color: #333;
+        }
+        
+        .fuel-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .fuel-btn {
+            padding: 15px;
+            border: 3px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .fuel-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .fuel-btn.selected {
+            background: #51cf66;
+            color: white;
+            border-color: #37b24d;
+            box-shadow: 0 4px 12px rgba(55, 178, 77, 0.4);
+        }
+        
+        .control-group {
+            margin: 20px 0;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.05em;
+        }
+        
+        .control-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            background: white;
+        }
+        
+        .control-group input[disabled] {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .simulation-area {
+            background: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 3px solid #2a5298;
+            min-height: 250px;
+        }
+        
+        .track {
+            position: relative;
+            height: 120px;
+            background: #adb5bd;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 3px dashed #495057;
+        }
+        
+        .car {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 40px;
+            background: #ff6b6b;
+            border-radius: 4px;
+            transition: left 0.8s linear;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .car::before {
+            content: '🏎️';
+            font-size: 2.5em;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scaleX(-1);
+        }
+        
+        .result-display {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .laps-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2a5298;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
+            border-radius: 12px;
+            border: 3px solid #339af0;
+        }
+        
+        .laps-label {
+            font-size: 0.4em;
+            color: #495057;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-run {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+        
+        .btn-run:hover:not(:disabled) {
+            background: linear-gradient(135deg, #37b24d 0%, #2b8a3e 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(55, 178, 77, 0.4);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #ff6b6b 0%, #fa5252 100%);
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: linear-gradient(135deg, #fa5252 0%, #e03131 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(250, 82, 82, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .status.ready {
+            background: #d3f9d8;
+            color: #2b8a3e;
+        }
+        
+        .status.running {
+            background: #d0ebff;
+            color: #1971c2;
+        }
+        
+        @media (max-width: 768px) {
+            .fuel-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏎️ Ethanol Fuel Performance Investigation</h1>
+            <p>Scientific Investigation Simulation</p>
+        </div>
+        
+        <div class="content">
+            <div class="control-section">
+                <h2>Select Fuel Blend <span class="variable-tag iv-tag">Independent Variable</span></h2>
+                <div class="fuel-selector" id="fuelSelector">
+                    <button class="fuel-btn" data-blend="0">E0<br>(0%)</button>
+                    <button class="fuel-btn" data-blend="5">E5<br>(5%)</button>
+                    <button class="fuel-btn" data-blend="10">E10<br>(10%)</button>
+                    <button class="fuel-btn" data-blend="15">E15<br>(15%)</button>
+                    <button class="fuel-btn" data-blend="20">E20<br>(20%)</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h2>Control Variables <span class="variable-tag cv-tag">Keep Constant</span></h2>
+                
+                <div class="control-group">
+                    <label>Fuel Volume (ml)</label>
+                    <input type="text" value="50 ml" disabled>
+                </div>
+                
+                <div class="control-group">
+                    <label>Surface Type</label>
+                    <select id="surfaceType">
+                        <option value="smooth">Smooth (Indoor Track)</option>
+                        <option value="rough">Rough (Outdoor Track)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>Car Mass</label>
+                    <select id="carMass">
+                        <option value="200">200 g (No Load)</option>
+                        <option value="300">300 g (+100 g Load)</option>
+                        <option value="400">400 g (+200 g Load)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="simulation-area">
+                <h2 style="text-align: center; color: #2a5298; margin-bottom: 20px;">
+                    Number of Laps <span class="variable-tag dv-tag">Dependent Variable</span>
+                </h2>
+                
+                <div class="track" id="track">
+                    <div class="car" id="car"></div>
+                </div>
+                
+                <div class="result-display">
+                    <div id="statusDisplay" class="status ready">
+                        ✓ Ready to run experiment
+                    </div>
+                    
+                    <div class="laps-display" id="lapsDisplay">
+                        <span id="lapsValue">--</span>
+                        <span class="laps-label">LAPS</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-run" id="runBtn">▶️ RUN</button>
+                <button class="btn btn-reset" id="resetBtn">🔄 RESET</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // State
+        const state = {
+            selectedBlend: null,
+            surfaceType: 'smooth',
+            carMass: 200,
+            isRunning: false
+        };
+        
+        // Scientific Model - Calculate number of laps
+        function calculateLaps(ethanolPercent, surfaceType, carMass) {
+            // Base lap ranges for each ethanol percentage
+            let baseLaps;
+            let range;
+            
+            if (ethanolPercent === 0) {
+                // E0: 25-30 laps
+                baseLaps = 27.5;
+                range = 2.5;
+            } else if (ethanolPercent === 5) {
+                // E5: 22-25 laps
+                baseLaps = 23.5;
+                range = 1.5;
+            } else if (ethanolPercent === 10) {
+                // E10: 20-23 laps
+                baseLaps = 21.5;
+                range = 1.5;
+            } else if (ethanolPercent === 15) {
+                // E15: 16-19 laps (lower)
+                baseLaps = 17.5;
+                range = 1.5;
+            } else if (ethanolPercent === 20) {
+                // E20: 12-15 laps (lowest)
+                baseLaps = 13.5;
+                range = 1.5;
+            }
+            
+            // Surface factor
+            const surfaceFactor = surfaceType === 'smooth' ? 1.0 : 0.85;
+            
+            // Mass factor (more mass = fewer laps)
+            const massFactor = 200 / carMass;
+            
+            // Apply factors to base laps
+            let laps = baseLaps * surfaceFactor * massFactor;
+            
+            // Add random variation within the range
+            const variation = (Math.random() - 0.5) * 2 * range;
+            laps = laps + variation;
+            
+            // Ensure we stay within reasonable bounds
+            laps = Math.max(5, laps);
+            
+            // Round to 1 decimal place
+            return Math.round(laps * 10) / 10;
+        }
+        
+        // UI Elements
+        const fuelButtons = document.querySelectorAll('.fuel-btn');
+        const surfaceTypeSelect = document.getElementById('surfaceType');
+        const carMassSelect = document.getElementById('carMass');
+        const runBtn = document.getElementById('runBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const car = document.getElementById('car');
+        const lapsValue = document.getElementById('lapsValue');
+        const statusDisplay = document.getElementById('statusDisplay');
+        
+        // Fuel Selection
+        fuelButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (state.isRunning) return;
+                
+                // Deselect all
+                fuelButtons.forEach(b => b.classList.remove('selected'));
+                
+                // Select this one
+                btn.classList.add('selected');
+                state.selectedBlend = parseInt(btn.dataset.blend);
+                
+                // Update status
+                statusDisplay.className = 'status ready';
+                statusDisplay.textContent = `✓ Selected E${state.selectedBlend} - Ready to run`;
+            });
+        });
+        
+        // Update surface type
+        surfaceTypeSelect.addEventListener('change', () => {
+            state.surfaceType = surfaceTypeSelect.value;
+        });
+        
+        // Update car mass
+        carMassSelect.addEventListener('change', () => {
+            state.carMass = parseInt(carMassSelect.value);
+        });
+        
+        // Run Experiment
+        runBtn.addEventListener('click', () => {
+            if (state.selectedBlend === null) {
+                alert('Please select a fuel blend first!');
+                return;
+            }
+            
+            if (state.isRunning) return;
+            
+            state.isRunning = true;
+            runBtn.disabled = true;
+            
+            // Update status
+            statusDisplay.className = 'status running';
+            statusDisplay.textContent = '🔬 Running experiment...';
+            
+            // Reset car position
+            car.style.left = '0%';
+            lapsValue.textContent = '--';
+            
+            // Calculate laps
+            const laps = calculateLaps(state.selectedBlend, state.surfaceType, state.carMass);
+            
+            // Animate car
+            setTimeout(() => {
+                car.style.left = 'calc(100% - 60px)';
+            }, 100);
+            
+            // Show result after animation
+            setTimeout(() => {
+                lapsValue.textContent = laps;
+                statusDisplay.className = 'status ready';
+                statusDisplay.textContent = `✓ Experiment complete - E${state.selectedBlend} completed ${laps} laps`;
+                state.isRunning = false;
+                runBtn.disabled = false;
+                
+                // Reset car for next run
+                setTimeout(() => {
+                    car.style.transition = 'none';
+                    car.style.left = '0%';
+                    setTimeout(() => {
+                        car.style.transition = 'left 0.8s linear';
+                    }, 50);
+                }, 500);
+            }, 900);
+        });
+        
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            // Reset all selections
+            fuelButtons.forEach(b => b.classList.remove('selected'));
+            state.selectedBlend = null;
+            state.surfaceType = 'smooth';
+            state.carMass = 200;
+            state.isRunning = false;
+            
+            // Reset UI
+            surfaceTypeSelect.value = 'smooth';
+            carMassSelect.value = '200';
+            lapsValue.textContent = '--';
+            car.style.transition = 'none';
+            car.style.left = '0%';
+            setTimeout(() => {
+                car.style.transition = 'left 0.8s linear';
+            }, 50);
+            
+            statusDisplay.className = 'status ready';
+            statusDisplay.textContent = '✓ Ready to run experiment';
+            runBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
